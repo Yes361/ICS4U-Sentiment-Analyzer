@@ -1,8 +1,8 @@
 public class RatioScorer extends SentimentScorer {
     @Override
-    public double calculateScore(SentimentResults results) {
-        int positiveCount = results.getClasses().getFrequency("POSITIVE");
-        int negativeCount = results.getClasses().getFrequency("NEGATIVE");
+    public double calculateScore(SentimentResult results) {
+        int positiveCount = results.getClassifications().getFrequency("POSITIVE");
+        int negativeCount = results.getClassifications().getFrequency("NEGATIVE");
         int totalWords = positiveCount + negativeCount;
 
         return positiveCount > negativeCount ? (double) positiveCount / totalWords : (double) -negativeCount / totalWords;

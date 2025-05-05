@@ -1,58 +1,75 @@
+import javax.swing.*;
 import java.util.*;
 import java.io.*;
 
 public class SentimentAnalyzer {
-    private final ArrayList<String> wordList = new ArrayList<>();
-    private final HashMap<String, String> DictionarySentiments = new HashMap<>();
+    private final SentimentDictionary Sentiments = new SentimentDictionary();
 
-    public void LoadFile(File file) throws FileNotFoundException {
-        Scanner FileReader = new Scanner(file);
-        wordList.clear();
-
-        while (FileReader.hasNextLine()) {
-            String[] words = FileReader.nextLine().trim().split(" ");
-
-            wordList.addAll(Arrays.asList(words));
-//            for (String word : words) {
-//                wordList.add(word.replace())
-//            }
-        }
+    public SentimentAnalyzer(File DefaultDictionaryPath) throws FileNotFoundException {
+        LoadDictionary(DefaultDictionaryPath);
     }
 
+    public SentimentAnalyzer() {
+    }
+
+    private static ArrayList<String> ReadWordsFromFile(File file) throws FileNotFoundException {
+        Scanner FileReader = new Scanner(file);
+        ArrayList<String> wordList = new ArrayList<>();
+
+        while (FileReader.hasNextLine()) {
+            // Remove Grammar Punctuation from words
+            String[] words = FileReader.nextLine().toLowerCase().split("[ .,?!]");
+            wordList.addAll(Arrays.asList(words));
+        }
+
+        return wordList;
+    }
+
+    /**
+     * LoadDictionary
+     */
     public void LoadDictionary(File file) throws FileNotFoundException {
         Scanner FileReader = new Scanner(file);
-        DictionarySentiments.clear();
+        Sentiments.clear();
 
         while (FileReader.hasNextLine()) {
             String contents = FileReader.nextLine().trim();
-            String[] arguments = contents.split(",");
+            String[] arguments = contents.split(" ");
 
-            if (arguments.length != 2) {
-                throw new RuntimeException(String.format("Arguments for %s wrong", contents));
+            if (arguments.length != 3) {
+                throw new RuntimeException(String.format("Arguments for %s wrong :(", contents));
             }
 
             String word = arguments[0].trim();
             String sentiment = arguments[1].trim();
-            DictionarySentiments.put(word, sentiment);
+            double intensity = Double.parseDouble(arguments[2].trim());
+            Sentiments.insert(word, sentiment, intensity);
         }
     }
 
-    public SentimentResults AnalyzeFromDict(File FilePath, File DictionaryPath, SentimentScorer Scorer) throws FileNotFoundException {
-        LoadFile(FilePath);
-        LoadDictionary(DictionaryPath);
+    public boolean isDictionaryEmpty() {
+        return Sentiments.isEmpty();
+    }
 
+    /**
+     * AnalyzeFromDict
+     */
+    public SentimentResult AnalyzeFromDict(File FilePath, SentimentScorer Scorer) throws FileNotFoundException {
+        ArrayList<String> wordList = ReadWordsFromFile(FilePath);
         Classifications classes = new Classifications();
 
         for (String word : wordList) {
-            if (DictionarySentiments.containsKey(word)) {
-                String classifier = DictionarySentiments.get(word);
-                classes.insert(classifier, word);
+            if (!Sentiments.ContainsWord(word)) {
+                classes.insert("UNCLASSIFIED", word, 0.0);
             } else {
-                classes.insert("Unclassified", word);
+                String classifier = Sentiments.getSentiment(word);
+                double intensity = Sentiments.getIntensity(word);
+                classes.insert(classifier, word, intensity);
             }
         }
 
-        SentimentResults results = new SentimentResults(FilePath.getName(), wordList.size(), classes);
+        SentimentResult results = new SentimentResult(FilePath, classes);
+
         double score = Scorer.calculateScore(results);
         String sentiment = Scorer.classify(score);
 
@@ -61,4 +78,29 @@ public class SentimentAnalyzer {
 
         return results;
     }
+
+    public SentimentResult[] BatchAnalyzeFromDict(File[] files, SentimentScorer Scorer) throws FileNotFoundException {
+        ArrayList<SentimentResult> results = new ArrayList<>();
+
+        for (File file : files) {
+            SentimentResult result = AnalyzeFromDict(file, Scorer);
+            results.add(result);
+        }
+
+        return results.toArray(new SentimentResult[0]);
+    }
+
+    public SentimentResult[] BatchAnalyzeFromDict(String[] fileNames, SentimentScorer Scorer) throws FileNotFoundException {
+        ArrayList<SentimentResult> results = new ArrayList<>();
+
+        for (String fileName : fileNames) {
+            File file = new File(fileName);
+
+            SentimentResult result = AnalyzeFromDict(file, Scorer);
+            results.add(result);
+        }
+
+        return results.toArray(new SentimentResult[0]);
+    }
 }
+
