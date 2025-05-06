@@ -12,10 +12,10 @@ public class Classifications {
         if (!Classifiers.containsKey(classifier)) {
             Classifiers.put(classifier, new ArrayList<String>());
             Intensities.put(classifier, 0.0);
-        } else {
-            Classifiers.get(classifier).add(word);
-            Intensities.compute(classifier, (key, level ) -> level + intensity);
         }
+
+        Classifiers.get(classifier).add(word);
+        Intensities.compute(classifier, (key, level ) -> level + intensity);
 
         if (!Frequency.containsKey(word)) {
             Frequency.put(word, 1);

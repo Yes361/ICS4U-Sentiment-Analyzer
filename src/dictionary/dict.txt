@@ -13,6 +13,7 @@ vomit NEGATIVE 1.0
 angry NEGATIVE 1.0
 sick NEGATIVE 1.0
 repulsive NEGATIVE 1.0
+short NEGATIVE 0.000001
 delicious POSITIVE 1.0
 tasty POSITIVE 1.0
 savory POSITIVE 1.0

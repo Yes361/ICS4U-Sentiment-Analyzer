@@ -14,9 +14,6 @@ public class MainFrame extends JFrame {
     private SentimentResult[] Results;
     private final SentimentAnalyzer analyzer = new SentimentAnalyzer();
     private final JFileChooser FileChooser = new JFileChooser();
-    private final DefaultListModel<File> FileListModel;
-    private final JList<File> FileList;
-    private JComboBox<SentimentScorer> ScorerDropdown;
 
     public MainFrame() {
         this.setSize(500, 500);
@@ -30,8 +27,8 @@ public class MainFrame extends JFrame {
         JLabel label = new JLabel("Files");
         label.setBounds(150, 30, 50, 20);
 
-        FileListModel = new DefaultListModel<>();
-        FileList = new JList<>(FileListModel);
+        DefaultListModel<File> FileListModel = new DefaultListModel<>();
+        JList<File> FileList = new JList<>(FileListModel);
         FileList.setCellRenderer(new FileCellRenderer());
         FileList.setBounds(50, 50, 200, 100);
 
@@ -48,11 +45,15 @@ public class MainFrame extends JFrame {
         Container DictionarySettingComponent = CreateDictionarySettingComponent(FileChooserFrame);
         Container FileSaveSettings = CreateFileSaveSettings(FileChooserFrame);
 
-        JButton FileUploadButton = CreateFileUploadButton(FileChooserFrame);
-        JButton RemoveFilesButton = CreateRemoveFilesButton();
+        JButton FileUploadButton = CreateFileUploadButton(FileChooserFrame, FileListModel);
+        JButton RemoveFilesButton = CreateRemoveFilesButton(FileListModel, FileList);
 
-        Container ScorerDropdownContainer = CreateScorerDropdownContainer();
-        JButton AnalyzerButton = CreateAnalyzerButton();
+        SentimentScorer[] Scorers = { new RatioScorer(), new WeightedScorer() };
+        JComboBox<SentimentScorer> ScorerComboBox = new JComboBox<>(Scorers);
+        Container ScorerDropdown = CreateScorerDropdownContainer(ScorerComboBox);
+
+        JTextArea OutputLabel = CreateOutputLabel();
+        JButton AnalyzerButton = CreateAnalyzerButton(FileListModel, OutputLabel, ScorerComboBox);
 
         Component[] buttons = {
                 DictionarySettingComponent,
@@ -60,7 +61,7 @@ public class MainFrame extends JFrame {
                 AnalyzerButton,
                 RemoveFilesButton,
                 FileSaveSettings,
-                ScorerDropdownContainer
+                ScorerDropdown
         };
 
         for (Component button : buttons) {
@@ -74,22 +75,24 @@ public class MainFrame extends JFrame {
         this.setVisible(true);
     }
 
-    private Container CreateScorerDropdownContainer() {
-        SentimentScorer[] Scorers = { new RatioScorer(), new WeightedScorer() };
-        ScorerDropdown = new JComboBox<>(Scorers);
+    private Container CreateScorerDropdownContainer(JComboBox<SentimentScorer> ScorerDropdown) {
         JLabel ScorerDropdownLabel = new JLabel("Scorers");
-
         return CreateContainerWithSpaceSeperatedElements(ScorerDropdownLabel, ScorerDropdown);
     }
 
-    private JButton CreateAnalyzerButton() {
-        JButton AnalyzerButton = new JButton("Analyze Sentiments");
+    private JTextArea CreateOutputLabel() {
         JTextArea OutputLabel = new JTextArea();
 
         JScrollPane scrollPane = new JScrollPane(OutputLabel);
         scrollPane.setBounds(50, 180, 200, 200);
         scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
         this.add(scrollPane);
+
+        return OutputLabel;
+    }
+
+    private JButton CreateAnalyzerButton(DefaultListModel<File> FileListModel, JTextArea OutputLabel, JComboBox<SentimentScorer> ScorerDropdown) {
+        JButton AnalyzerButton = new JButton("Analyze Sentiments");
 
         AnalyzerButton.addActionListener((Event) -> {
             SentimentScorer Scorer = (SentimentScorer) ScorerDropdown.getSelectedItem();
@@ -152,7 +155,7 @@ public class MainFrame extends JFrame {
         return DictionarySettingComponent;
     }
 
-    private JButton CreateRemoveFilesButton() {
+    private JButton CreateRemoveFilesButton(DefaultListModel<File> FileListModel, JList<File> FileList) {
         JButton RemoveFilesButton = new JButton("Remove Files");
 
         RemoveFilesButton.addActionListener((Event) -> {
@@ -206,7 +209,7 @@ public class MainFrame extends JFrame {
         return FileSaveSettings;
     }
 
-    private JButton CreateFileUploadButton(JFrame FileChooserFrame) {
+    private JButton CreateFileUploadButton(JFrame FileChooserFrame, DefaultListModel<File> FileListModel) {
         JButton FileUploadButton = new JButton("Load Files");
 
         FileUploadButton.addActionListener((Event) -> {

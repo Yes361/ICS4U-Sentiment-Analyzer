@@ -37,7 +37,12 @@ public class SentimentAnalyzer {
             String[] arguments = contents.split(" ");
 
             if (arguments.length != 3) {
-                throw new RuntimeException(String.format("Arguments for %s wrong :(", contents));
+                throw new RuntimeException(String.format("""
+                Arguments for %s invalid
+                SentimentDictionary arguments must follow schema:
+                WORD   SENTIMENT INTENSITY
+                String String    Double
+                """, contents));
             }
 
             String word = arguments[0].trim();
@@ -47,8 +52,8 @@ public class SentimentAnalyzer {
         }
     }
 
-    public boolean isDictionaryEmpty() {
-        return Sentiments.isEmpty();
+    public SentimentDictionary getSentiments() {
+        return Sentiments;
     }
 
     /**
@@ -60,10 +65,11 @@ public class SentimentAnalyzer {
 
         for (String word : wordList) {
             if (!Sentiments.ContainsWord(word)) {
-                classes.insert("UNCLASSIFIED", word, 0.0);
+                classes.insert("NEUTRAL", word, 0.0);
             } else {
                 String classifier = Sentiments.getSentiment(word);
                 double intensity = Sentiments.getIntensity(word);
+
                 classes.insert(classifier, word, intensity);
             }
         }

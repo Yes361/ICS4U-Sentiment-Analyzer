@@ -40,8 +40,7 @@ public class Main {
         }
 
         String[] fileNames = {
-                "C:\\Users\\NAZRU\\IdeaProjects\\ICS4U-Sentiment-Analyzer\\src\\input\\data1.txt",
-                "C:\\Users\\NAZRU\\IdeaProjects\\ICS4U-Sentiment-Analyzer\\src\\input\\data2.txt"
+            "C:\\Users\\NAZRU\\IdeaProjects\\ICS4U-Sentiment-Analyzer\\src\\input\\qazi.txt",
         };
 
 
