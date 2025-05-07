@@ -6,8 +6,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.nio.file.Paths;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 public class MainFrame extends JFrame {
@@ -53,7 +51,7 @@ public class MainFrame extends JFrame {
 
         JPanel MenuPanel = new JPanel();
         MenuPanel.setLayout(new BoxLayout(MenuPanel, BoxLayout.PAGE_AXIS));
-        MenuPanel.setBounds(270, 90, 200, 300);
+        MenuPanel.setBounds(215, 90, 270, 300);
 
         // Adding the dictionary components
         Container DictionarySettingComponent = CreateDictionarySettingComponent(FileChooserFrame);
@@ -103,7 +101,7 @@ public class MainFrame extends JFrame {
 
         // Scroll pane to make the JTextArea scrollable horizontally and vertically
         JScrollPane scrollPane = new JScrollPane(OutputLabel);
-        scrollPane.setBounds(50, 180, 200, 200);
+        scrollPane.setBounds(50, 180, 150, 200);
         scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
         this.add(scrollPane);
 
@@ -142,7 +140,7 @@ public class MainFrame extends JFrame {
 
             try {
                 // Analyze the batch of files and append the batch report
-                // to the output lable
+                // to the output label
 
                 Results = analyzer.BatchAnalyzeFromDict(files, Scorer);
                 String report = SentimentAnalyzer.WriteBatchReport(Results);

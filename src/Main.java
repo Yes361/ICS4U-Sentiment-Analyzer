@@ -16,6 +16,8 @@ public class Main {
     public static void main(String[] args) throws FileNotFoundException {
         Scanner input = new Scanner(System.in);
 
+        // Prompting user whether they wise to view the console or
+        // gui demo
         System.out.println("""
         Launch Console Demo or GUI?
         [1] Console
@@ -44,7 +46,7 @@ public class Main {
     public static void ConsoleDemo() throws FileNotFoundException {
 
         String outputDirectory = "src\\output";
-        String dictionaryPath = "dictionary\\dict.txt";
+        String dictionaryPath = "src\\dictionary\\dict.txt";
 
         // Get report Filename
         String reportFileName = createTimestampedFileName("report-%s.txt", "yyyyMMdd-hhMMss");
@@ -68,7 +70,7 @@ public class Main {
 
         // Batch of fileNames to test
         File[] fileNames = {
-            new File(System.getProperty("user.dir"), "input\\data1.txt")
+            new File(System.getProperty("user.dir"), "src\\input\\data1.txt")
         };
 
         // Create a scorer and analyze the file batch

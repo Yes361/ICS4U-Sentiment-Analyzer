@@ -117,10 +117,8 @@ public class SentimentResult {
                 .append(classifier)
                 .append("\n")
                 .append(classifications.getClassifier(classifier))
-                .append("\n");
+                .append("\n\n");
         }
-
-        Report.append("\n");
         
         return Report.toString();
     }

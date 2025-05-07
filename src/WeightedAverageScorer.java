@@ -12,7 +12,7 @@ public class WeightedAverageScorer extends SentimentScorer {
             double intensity = classifications.getIntensity(Classifier);
 
             // Weighted calculation of the intensity of the classifier multiplied
-            // by its frequency of occurence
+            // by its frequency of occurrence
             weightedSum += intensity * classifications.getFrequency(Classifier) / classifications.getWords().size();
         }
 
@@ -21,8 +21,9 @@ public class WeightedAverageScorer extends SentimentScorer {
 
     @Override
     public String classify(double score) {
-        if (score > 0.5) return "POSITIVE";
-        if (score < -0.5) return "NEGATIVE";
+        double classificationThreshold = 0.1;
+        if (score > classificationThreshold) return "POSITIVE";
+        if (score < -classificationThreshold) return "NEGATIVE";
         return "NEUTRAL";
     }
 }

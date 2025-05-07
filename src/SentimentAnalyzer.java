@@ -168,10 +168,11 @@ public class SentimentAnalyzer {
         StringBuilder report = new StringBuilder();
 
         // Add hard-coded metadata
-        report.append("===Overall Report===");
+        report.append("===Overall Report===\n");
         report
             .append("Number of Report(s): ")
-            .append(results.length);
+            .append(results.length)
+            .append("\n");
 
         double averageScore = 0.0;
 
@@ -189,7 +190,8 @@ public class SentimentAnalyzer {
         // Append Statistics
         report
             .append("Average Score: ")
-            .append(averageScore);
+            .append(String.format("%.2f", averageScore))
+            .append("\n");
 
         report.append("=====================");
 
