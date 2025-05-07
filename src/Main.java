@@ -1,109 +1,107 @@
-import javax.swing.*;
-import javax.swing.filechooser.FileFilter;
-import javax.swing.filechooser.FileNameExtensionFilter;
-import java.awt.*;
+/*
+    Authors: Raiyan Islam
+    Date: 05/06/2025
+    Program Name: Sentiment Analyzer
+    Description: This Program provides a Graphical User Interface (GUI) to perform
+    sentiment analysis on files
+*/
+
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.io.*;
-import java.util.List;
 
 public class Main {
-    private static SentimentResult[] results;
-
     public static void main(String[] args) throws FileNotFoundException {
-        MainFrame frame = new MainFrame();
-
-        ConsoleDemo();
-    }
-
-    public static void ConsoleDemo() throws FileNotFoundException {
         Scanner input = new Scanner(System.in);
 
+        System.out.println("""
+        Launch Console Demo or GUI?
+        [1] Console
+        [2] GUI
+        \s
+        """);
+
+        int option = input.nextInt();
+
+        if (option == 1) {
+            ConsoleDemo();
+        } else {
+            MainFrame frame = new MainFrame();
+            frame.setVisible(true);
+        }
+
+        input.close();
+
+    }
+
+    /**
+     * Console Demo is the console version of the sentiment analysis
+     *
+     * @throws FileNotFoundException If the files to dictionary, output, or batch files are not defined an error is thrown
+     */
+    public static void ConsoleDemo() throws FileNotFoundException {
+
+        String outputDirectory = "src\\output";
+        String dictionaryPath = "dictionary\\dict.txt";
+
+        // Get report Filename
         String reportFileName = createTimestampedFileName("report-%s.txt", "yyyyMMdd-hhMMss");
 
-        String OutputDirectoryPath = "C:\\Users\\NAZRU\\IdeaProjects\\ICS4U-Sentiment-Analyzer\\src\\output";
-        File OutputPath = Paths.get(OutputDirectoryPath, reportFileName).toFile();
+        // Get the Output Path
+        File OutputPath = Paths.get(System.getProperty("user.dir"), outputDirectory, reportFileName).toFile();
 
+        // Get the dictionary path
+        File dictionary = Paths.get(System.getProperty("user.dir"),dictionaryPath).toFile();
+
+        // Instantiate a new Analyzer
         SentimentAnalyzer analyzer = new SentimentAnalyzer();
 
+        // Load the dictionary and log the attempt
         try {
-            String dictionaryPath = "C:\\Users\\NAZRU\\IdeaProjects\\ICS4U-Sentiment-Analyzer\\src\\dictionary\\dict.txt";
-            File dictionary = new File(dictionaryPath);
-
             analyzer.LoadDictionary(dictionary);
-
         } catch (FileNotFoundException err) {
-            System.out.println("Invalid Dictionary File");
+            System.out.printf("Invalid Dictionary File for %s\n", dictionary.getAbsolutePath());
             return;
         }
 
-        String[] fileNames = {
-            "C:\\Users\\NAZRU\\IdeaProjects\\ICS4U-Sentiment-Analyzer\\src\\input\\qazi.txt",
+        // Batch of fileNames to test
+        File[] fileNames = {
+            new File(System.getProperty("user.dir"), "input\\data1.txt")
         };
 
-
+        // Create a scorer and analyze the file batch
         SentimentScorer Scorer = new RatioScorer();
         SentimentResult[] sentimentResults = analyzer.BatchAnalyzeFromDict(fileNames, Scorer);
 
         WriteResultsToFile(OutputPath, sentimentResults);
-
-        input.close();
     }
 
     public static void WriteResultsToFile(File OutputPath, SentimentResult[] Results) throws FileNotFoundException {
+        // Create a PrintWriter and print the batch report
         try (PrintWriter writer = new PrintWriter(OutputPath)) {
-
-            for (SentimentResult result : Results) {
-                System.out.println(result);
-                System.out.println();
-
-                writer.write(result.getSummary());
-                writer.write("\n");
-            }
-
+            writer.write(SentimentAnalyzer.WriteBatchReport(Results));
         }
     }
 
-    public static String readLine(Scanner input, String prompt) {
-        System.out.print(prompt);
-        return input.nextLine();
-    }
-
-    public static String[] readLines(Scanner input, String prompt, String terminator) {
-        System.out.print(prompt);
-
-        ArrayList<String> lines = new ArrayList<>();
-        String inputtedLine = input.nextLine();
-
-        while (!inputtedLine.equals(terminator)) {
-            lines.add(inputtedLine);
-        }
-
-        return (String[]) lines.toArray();
-    }
-
-    public static File GetAvailableFilePath(File directory, String FileName, String FileFormat) {
-        int index = 1;
-        File AvailableFile;
-
-        do {
-            String ModifiedFileName = String.format("%s%d.%s", FileName, index++, FileFormat);
-            String FilePath = Paths.get(directory.getPath(), ModifiedFileName).toString();
-            AvailableFile = new File(FilePath);
-
-        } while (AvailableFile.exists() && AvailableFile.isFile());
-
-        return AvailableFile;
-    }
-
+    /**
+     * createTimestampedFileName
+     *
+     * @param fileName FileName Schema
+     * @param timestampFormat The format of the timestamp that should be incorporated in the FileName Schema
+     *
+     * createTimestampedFileName("report-%s.txt", "yyyyMMdd-hhMMss") returns "report-20250506-120509.txt
+     */
     public static String createTimestampedFileName(String fileName, String timestampFormat) {
+        // Get Current Time
         LocalDateTime currentTime = LocalDateTime.now();
 
+        // Format current time
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(timestampFormat);
         String timestamp = currentTime.format(formatter);
 
+        // Return a FileName that has a timestamp incorporated
         return String.format(fileName, timestamp);
     }
 }

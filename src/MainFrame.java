@@ -11,49 +11,73 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 public class MainFrame extends JFrame {
+    /// Instance Fields
     private SentimentResult[] Results;
     private final SentimentAnalyzer analyzer = new SentimentAnalyzer();
     private final JFileChooser FileChooser = new JFileChooser();
 
     public MainFrame() {
+        // Basic configuration setup
         this.setSize(500, 500);
         this.setLayout(null);
 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
+        // FileFilter for the FileChooser
         FileFilter filter = new FileNameExtensionFilter("txt", "txt");
         FileChooser.setFileFilter(filter);
 
+        /// File Catalog displaying the list of currently added files and selected files
+
+        // Label header for File Catalog
         JLabel label = new JLabel("Files");
         label.setBounds(150, 30, 50, 20);
 
+        // Constructing a JList and FileListModel for storing and displaying files
         DefaultListModel<File> FileListModel = new DefaultListModel<>();
         JList<File> FileList = new JList<>(FileListModel);
+
+        // Adding Custom Renderer for Files
         FileList.setCellRenderer(new FileCellRenderer());
         FileList.setBounds(50, 50, 200, 100);
 
+        // Adding to this frame
         this.add(label);
         this.add(FileList);
 
-        JPanel MenuPanel = new JPanel();
+        // Defining the window for the file chooser
         JFrame FileChooserFrame = new JFrame();
         FileChooserFrame.setSize(500, 500);
 
+        /// Creating a panel of all the buttons
+
+        JPanel MenuPanel = new JPanel();
         MenuPanel.setLayout(new BoxLayout(MenuPanel, BoxLayout.PAGE_AXIS));
         MenuPanel.setBounds(270, 90, 200, 300);
 
+        // Adding the dictionary components
         Container DictionarySettingComponent = CreateDictionarySettingComponent(FileChooserFrame);
+
+        // Adding the file save components
         Container FileSaveSettings = CreateFileSaveSettings(FileChooserFrame);
 
+        // File uploading and file removal which requires access to the FileListModel
         JButton FileUploadButton = CreateFileUploadButton(FileChooserFrame, FileListModel);
         JButton RemoveFilesButton = CreateRemoveFilesButton(FileListModel, FileList);
 
-        SentimentScorer[] Scorers = { new RatioScorer(), new WeightedScorer() };
+        // A dropdown containing all the available SentimentScorers
+        SentimentScorer[] Scorers = { new RatioScorer(), new WeightedScorer(), new EntropyScorer(), new WeightedAverageScorer() };
         JComboBox<SentimentScorer> ScorerComboBox = new JComboBox<>(Scorers);
-        Container ScorerDropdown = CreateScorerDropdownContainer(ScorerComboBox);
 
+        // Adding the header for the dropdown
+        JLabel ScorerDropdownLabel = new JLabel("Scorers");
+        Container ScorerDropdown = CreateContainerWithSpaceSeperatedElements(ScorerDropdownLabel, ScorerComboBox);
+
+        // Output label displaying the results of the analysis
         JTextArea OutputLabel = CreateOutputLabel();
-        JButton AnalyzerButton = CreateAnalyzerButton(FileListModel, OutputLabel, ScorerComboBox);
+
+        // Analyzer Button
+        JButton AnalyzerButton = CreateAnalyzerButton(FileListModel, FileList, OutputLabel, ScorerComboBox);
 
         Component[] buttons = {
                 DictionarySettingComponent,
@@ -71,15 +95,8 @@ public class MainFrame extends JFrame {
 
         MenuPanel.setVisible(true);
         this.add(MenuPanel);
-
-        this.setVisible(true);
     }
-
-    private Container CreateScorerDropdownContainer(JComboBox<SentimentScorer> ScorerDropdown) {
-        JLabel ScorerDropdownLabel = new JLabel("Scorers");
-        return CreateContainerWithSpaceSeperatedElements(ScorerDropdownLabel, ScorerDropdown);
-    }
-
+    
     private JTextArea CreateOutputLabel() {
         JTextArea OutputLabel = new JTextArea();
 
@@ -91,32 +108,33 @@ public class MainFrame extends JFrame {
         return OutputLabel;
     }
 
-    private JButton CreateAnalyzerButton(DefaultListModel<File> FileListModel, JTextArea OutputLabel, JComboBox<SentimentScorer> ScorerDropdown) {
+    private JButton CreateAnalyzerButton(DefaultListModel<File> FileListModel, JList<File> FileList, JTextArea OutputLabel, JComboBox<SentimentScorer> ScorerDropdown) {
         JButton AnalyzerButton = new JButton("Analyze Sentiments");
 
         AnalyzerButton.addActionListener((Event) -> {
             SentimentScorer Scorer = (SentimentScorer) ScorerDropdown.getSelectedItem();
 
-            Object[] fileObjects = FileListModel.toArray();
-            File[] files = new File[fileObjects.length];
+            File[] files;
+            if (FileList.getSelectedValuesList().isEmpty()) {
+                Object[] fileObjects = FileListModel.toArray();
+                files = new File[fileObjects.length];
 
-            for (int i = 0;i < fileObjects.length;i++) {
-                files[i] = (File) fileObjects[i];
+                for (int i = 0; i < fileObjects.length; i++) {
+                    files[i] = (File) fileObjects[i];
+                }
+            } else {
+                files = FileList.getSelectedValuesList().toArray(new File[0]);
             }
 
             try {
                 Results = analyzer.BatchAnalyzeFromDict(files, Scorer);
-
-                StringBuilder OverallReport = new StringBuilder();
-                for (SentimentResult result : Results) {
-                    OverallReport.append(result.getSummary());
-                }
-
-                OutputLabel.setText(OverallReport.toString());
+                String report = SentimentAnalyzer.WriteBatchReport(Results);
+                OutputLabel.setText(report);
             } catch (FileNotFoundException e) {
                 throw new RuntimeException(e);
             }
         });
+
         return AnalyzerButton;
     }
 

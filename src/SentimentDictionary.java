@@ -1,3 +1,8 @@
+/*
+* SentimentDictionary aggregates words with their assigned sentiment and intensities
+* as opposed to having HashMaps strewn about the codebase
+*  */
+
 import java.util.HashMap;
 
 public class SentimentDictionary {
