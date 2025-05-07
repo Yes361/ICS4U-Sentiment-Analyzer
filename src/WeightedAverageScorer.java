@@ -1,17 +1,22 @@
 public class WeightedAverageScorer extends SentimentScorer {
     @Override
     public double calculateScore(SentimentResult result) {
-        double totalWeight = 0;
         double weightedSum = 0;
 
-        for (String Classifier : result.getClassifications().getClassifiers()) {
-            double intensity = result.getClassifications().getIntensity(Classifier);
-            double weight = 1.0;
-            weightedSum += intensity * weight;
-            totalWeight += weight;
+        // Retrieving data from the results
+        Classifications classifications = result.getClassifications();
+        String[] Classifiers = classifications.getClassifiers();
+
+        // Average the intensities of all the classifiers
+        for (String Classifier : Classifiers) {
+            double intensity = classifications.getIntensity(Classifier);
+
+            // Weighted calculation of the intensity of the classifier multiplied
+            // by its frequency of occurence
+            weightedSum += intensity * classifications.getFrequency(Classifier) / classifications.getWords().size();
         }
 
-        return totalWeight == 0 ? 0 : weightedSum / totalWeight;
+        return weightedSum / Classifiers.length;
     }
 
     @Override

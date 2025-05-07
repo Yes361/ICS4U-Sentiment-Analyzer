@@ -1,10 +1,17 @@
+/*
+* This is similar to RatioScorer but instead adds the `intensities` of the
+* classifiers
+*  */
+
 public class WeightedScorer extends SentimentScorer {
 
     @Override
     public double calculateScore(SentimentResult results) {
-        double positiveIntensity = results.getClassifications().getIntensity("POSITIVE");
-        double negativeIntensity = results.getClassifications().getIntensity("NEGATIVE");
-        int totalWords = results.getClassifications().getTotalWords();
+        Classifications classifications = results.getClassifications();
+
+        double positiveIntensity = classifications.getIntensity("POSITIVE");
+        double negativeIntensity = classifications.getIntensity("NEGATIVE");
+        int totalWords = classifications.getTotalWords();
 
         return (positiveIntensity + negativeIntensity) / totalWords;
     }

@@ -79,6 +79,7 @@ public class MainFrame extends JFrame {
         // Analyzer Button
         JButton AnalyzerButton = CreateAnalyzerButton(FileListModel, FileList, OutputLabel, ScorerComboBox);
 
+        // Adding components to this frame with 10unit spacing
         Component[] buttons = {
                 DictionarySettingComponent,
                 FileUploadButton,
@@ -100,6 +101,7 @@ public class MainFrame extends JFrame {
     private JTextArea CreateOutputLabel() {
         JTextArea OutputLabel = new JTextArea();
 
+        // Scroll pane to make the JTextArea scrollable horizontally and vertically
         JScrollPane scrollPane = new JScrollPane(OutputLabel);
         scrollPane.setBounds(50, 180, 200, 200);
         scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
@@ -108,31 +110,48 @@ public class MainFrame extends JFrame {
         return OutputLabel;
     }
 
+    /**
+     * Creates the Analyzer Button and its logic
+     */
     private JButton CreateAnalyzerButton(DefaultListModel<File> FileListModel, JList<File> FileList, JTextArea OutputLabel, JComboBox<SentimentScorer> ScorerDropdown) {
         JButton AnalyzerButton = new JButton("Analyze Sentiments");
 
+        // Event listener for when the user presses this button
         AnalyzerButton.addActionListener((Event) -> {
+            // Get the scorer from currently selected from the dropdown
             SentimentScorer Scorer = (SentimentScorer) ScorerDropdown.getSelectedItem();
 
             File[] files;
+
+            // If there are no selected items in the file catalog
+            // default to analyzing them all
+            // else analyze the ones currently being selected
             if (FileList.getSelectedValuesList().isEmpty()) {
+                // Casting each element from the .toArray() from Object to String
+                // since casting Object[] to String[] is insufficient
                 Object[] fileObjects = FileListModel.toArray();
                 files = new File[fileObjects.length];
 
                 for (int i = 0; i < fileObjects.length; i++) {
                     files[i] = (File) fileObjects[i];
                 }
+
             } else {
                 files = FileList.getSelectedValuesList().toArray(new File[0]);
             }
 
             try {
+                // Analyze the batch of files and append the batch report
+                // to the output lable
+
                 Results = analyzer.BatchAnalyzeFromDict(files, Scorer);
                 String report = SentimentAnalyzer.WriteBatchReport(Results);
                 OutputLabel.setText(report);
+
             } catch (FileNotFoundException e) {
                 throw new RuntimeException(e);
             }
+
         });
 
         return AnalyzerButton;
@@ -143,24 +162,30 @@ public class MainFrame extends JFrame {
         JLabel CurrentDictionaryLabel = new JLabel("Not Selected");
         Container DictionarySettingComponent = CreateContainerWithSpaceSeperatedElements(DictionaryUploadButton, CurrentDictionaryLabel);
 
+        // Event listener for when the dictionary upload button is pressed
         DictionaryUploadButton.addActionListener((Event) -> {
+            // Initializing FileChooser for uploading the dictionary
             FileChooser.setMultiSelectionEnabled(false);
             FileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
             FileChooser.setSelectedFile(new File(""));
 
-            FileChooser.setCurrentDirectory(new File("C:\\Users\\NAZRU\\IdeaProjects\\ICS4U-Sentiment-Analyzer\\src\\dictionary"));
+//            FileChooser.setCurrentDirectory(new File("C:\\Users\\NAZRU\\IdeaProjects\\ICS4U-Sentiment-Analyzer\\src\\dictionary"));
             int FileChooserReturn = FileChooser.showOpenDialog(FileChooserFrame);
+
+            // Handling different return results of the FileChooser.showOpenDialog
             switch (FileChooserReturn) {
                 case JFileChooser.APPROVE_OPTION -> {
                     File SentimentDictionaryFile = FileChooser.getSelectedFile();
 
-                    // TODO: file existence
+                    // If The file exists load the analyzer's dictionary
 
                     try {
                         analyzer.LoadDictionary(SentimentDictionaryFile);
                     } catch (FileNotFoundException e) {
                         throw new RuntimeException(e);
                     }
+
+                    // Set the label to the current dictionary label
 
                     CurrentDictionaryLabel.setText(SentimentDictionaryFile.getName());
                 }
@@ -178,6 +203,8 @@ public class MainFrame extends JFrame {
 
         RemoveFilesButton.addActionListener((Event) -> {
             List<File> SelectedFiles = FileList.getSelectedValuesList();
+
+            // Get the files currently selected in the files catalog and remove them
 
             for (File file : SelectedFiles) {
                 FileListModel.removeElement(file);
@@ -198,26 +225,24 @@ public class MainFrame extends JFrame {
                 return;
             }
 
+            // Initialize the FileChooser for FileSave
             FileChooser.setMultiSelectionEnabled(false);
             FileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
             FileChooser.setSelectedFile(new File(""));
 
-            FileChooser.setCurrentDirectory(new File("C:\\Users\\NAZRU\\IdeaProjects\\ICS4U-Sentiment-Analyzer\\src\\input"));
+//            FileChooser.setCurrentDirectory(new File("C:\\Users\\NAZRU\\IdeaProjects\\ICS4U-Sentiment-Analyzer\\src\\input"));
             int FileChooserReturn = FileChooser.showSaveDialog(FileChooserFrame);
 
             if (FileChooserReturn == JFileChooser.APPROVE_OPTION) {
                 File directory = FileChooser.getSelectedFile();
 
-                String fileName = createTimestampedFileName("report-%s.txt", "yyyyMMdd-hhMMss");
+                // Create the file to which the report will be written to
+                String fileName = Main.createTimestampedFileName("report-%s.txt", "yyyyMMdd-hhMMss");
                 File file = Paths.get(directory.getPath(), fileName).toFile();
 
+                // Write the results using PrintWriter
                 try (PrintWriter writer = new PrintWriter(file)) {
-
-                    for (SentimentResult result : Results) {
-                        writer.write(result.getSummary());
-                        writer.write("\n");
-                    }
-
+                    writer.write(SentimentAnalyzer.WriteBatchReport(Results));
                 } catch (FileNotFoundException e) {
                     throw new RuntimeException(e);
                 }
@@ -230,18 +255,21 @@ public class MainFrame extends JFrame {
     private JButton CreateFileUploadButton(JFrame FileChooserFrame, DefaultListModel<File> FileListModel) {
         JButton FileUploadButton = new JButton("Load Files");
 
+        // Event listener for when the file upload button is pressed
         FileUploadButton.addActionListener((Event) -> {
+            // Initialize FileChooser for this button
             FileChooser.setMultiSelectionEnabled(true);
             FileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
             FileChooser.setSelectedFile(new File(""));
 
-            FileChooser.setCurrentDirectory(new File("C:\\Users\\NAZRU\\IdeaProjects\\ICS4U-Sentiment-Analyzer\\src\\input"));
+//            FileChooser.setCurrentDirectory(new File("C:\\Users\\NAZRU\\IdeaProjects\\ICS4U-Sentiment-Analyzer\\src\\input"));
             int FileChooserReturn = FileChooser.showOpenDialog(FileChooserFrame);
 
             switch (FileChooserReturn) {
                 case JFileChooser.APPROVE_OPTION -> {
                     File[] SelectedFiles = FileChooser.getSelectedFiles();
 
+                    // Add all selected files in teh file chooser to the Files Catalog
                     for (File file : SelectedFiles) {
                         FileListModel.addElement(file);
                     }
@@ -252,7 +280,15 @@ public class MainFrame extends JFrame {
         return FileUploadButton;
     }
 
+    /**
+     * Helper Method to create a container with a list of components with vertical spacing
+     *
+     * @param Components the List of components
+     *
+     * @return Container with the space-seperated components
+     */
     public Container CreateContainerWithSpaceSeperatedElements(Component ...Components) {
+        // Create the container and use a BoxLayout to get vertical positioning along the page axis
         Container container = new Container();
         container.setLayout(new BoxLayout(container, BoxLayout.PAGE_AXIS));
 
@@ -262,14 +298,5 @@ public class MainFrame extends JFrame {
         }
 
         return container;
-    }
-
-    public static String createTimestampedFileName(String fileName, String timestampFormat) {
-        LocalDateTime currentTime = LocalDateTime.now();
-
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(timestampFormat);
-        String timestamp = currentTime.format(formatter);
-
-        return String.format(fileName, timestamp);
     }
 }
